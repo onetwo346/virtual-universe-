@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmos Coder - 3D Simulation Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Include Three.js and OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Set up the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        camera.position.set(0, 5, 10);
+
+        // Add OrbitControls for camera movement
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // Add ambient and point lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight.position.set(0, 10, 10);
+        scene.add(pointLight);
+
+        // 1. Cosmic Background (Skybox)
+        const skyGeometry = new THREE.SphereGeometry(500, 60, 40);
+        const skyMaterial = new THREE.MeshBasicMaterial({
+            color: 0x1a0d2b, // Dark cosmic color (replace with a starry texture if available)
+            side: THREE.BackSide
+        });
+        const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+        scene.add(sky);
+
+        // Add a ringed planet
+        const planetGeometry = new THREE.SphereGeometry(5, 32, 32);
+        const planetMaterial = new THREE.MeshPhongMaterial({ color: 0xff3333, emissive: 0x550000 });
+        const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+        planet.position.set(-50, 30, -100);
+        scene.add(planet);
+
+        const ringGeometry = new THREE.TorusGeometry(7, 0.5, 16, 100);
+        const ringMaterial = new THREE.MeshBasicMaterial({ color: 0xff6666 });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.set(-50, 30, -100);
+        scene.add(ring);
+
+        // 2. Central Glowing Cube
+        const cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
+        const cubeMaterial = new THREE.MeshPhongMaterial({
+            color: 0x00ffff,
+            emissive: 0x00ffff,
+            emissiveIntensity: 1,
+            transparent: true,
+            opacity: 0.8
+        });
+        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        cube.position.set(0, 2, 0);
+        scene.add(cube);
+
+        // Add light beams from the cube
+        const beamGeometry = new THREE.CylinderGeometry(0.1, 0.1, 20, 32);
+        const beamMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5 });
+        const beam = new THREE.Mesh(beamGeometry, beamMaterial);
+        beam.position.set(0, 10, 0);
+        scene.add(beam);
+
+        // 3. Energy Streams (Simplified as glowing lines)
+        const streamPoints = [];
+        for (let i = 0; i < 20; i++) {
+            streamPoints.push(new THREE.Vector3(i - 10, 0, 0));
+        }
+        const streamGeometry = new THREE.BufferGeometry().setFromPoints(streamPoints);
+        const streamMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff });
+        const energyStream = new THREE.Line(streamGeometry, streamMaterial);
+        energyStream.position.y = 0.1;
+        scene.add(energyStream);
+
+        // 4. Floating Code Windows
+        const codePlaneGeometry = new THREE.PlaneGeometry(3, 2);
+        const codePlaneMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ffff,
+            transparent: true,
+            opacity: 0.5,
+            side: THREE.DoubleSide
+        });
+        const codeWindow1 = new THREE.Mesh(codePlaneGeometry, codePlaneMaterial);
+        codeWindow1.position.set(5, 3, 0);
+        scene.add(codeWindow1);
+
+        const codeWindow2 = new THREE.Mesh(codePlaneGeometry, codePlaneMaterial);
+        codeWindow2.position.set(-5, 3, 0);
+        scene.add(codeWindow2);
+
+        // 5. Futuristic Cityscape (Simplified as glowing pillars)
+        const buildingGeometry = new THREE.BoxGeometry(0.5, 5, 0.5);
+        const buildingMaterial = new THREE.MeshPhongMaterial({ color: 0xff00ff, emissive: 0xff00ff });
+        for (let i = 0; i < 10; i++) {
+            const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+            building.position.set(
+                (Math.random() - 0.5) * 20,
+                2.5,
+                (Math.random() - 0.5) * 20
+            );
+            scene.add(building);
+        }
+
+        // 6. Spaceships (Simplified as small cubes with movement)
+        const spaceshipGeometry = new THREE.BoxGeometry(0.5, 0.2, 1);
+        const spaceshipMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0xaaaaaa });
+        const spaceship1 = new THREE.Mesh(spaceshipGeometry, spaceshipMaterial);
+        spaceship1.position.set(0, 5, 0);
+        scene.add(spaceship1);
+
+        const spaceship2 = new THREE.Mesh(spaceshipGeometry, spaceshipMaterial);
+        spaceship2.position.set(0, 5, 0);
+        scene.add(spaceship2);
+
+        // 7. "Cosmos Coder" Text (Simplified as a 2D overlay for now)
+        const textOverlay = document.createElement('div');
+        textOverlay.style.position = 'absolute';
+        textOverlay.style.top = '20px';
+        textOverlay.style.left = '20px';
+        textOverlay.style.color = '#00ffff';
+        textOverlay.style.fontSize = '40px';
+        textOverlay.style.fontFamily = 'Arial, sans-serif';
+        textOverlay.innerText = 'COSMOS CODER';
+        document.body.appendChild(textOverlay);
+
+        // Animation Loop
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate the cube
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+
+            // Animate the spaceships
+            time += 0.05;
+            spaceship1.position.x = 5 * Math.sin(time);
+            spaceship1.position.z = 5 * Math.cos(time);
+            spaceship2.position.x = 5 * Math.cos(time);
+            spaceship2.position.z = 5 * Math.sin(time);
+
+            // Update controls
+            controls.update();
+
+            // Render the scene
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
