@@ -7,10 +7,20 @@
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
+        #cosmosText {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ffff;
+            font-size: 40px;
+            font-family: 'Arial', sans-serif;
+            text-shadow: 0 0 10px #00ffff;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    <div id="cosmosText">COSMOS CODER</div>
 
     <!-- Include Three.js and OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
@@ -23,7 +33,7 @@
         const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-        camera.position.set(0, 5, 10);
+        camera.position.set(0, 10, 20);
 
         // Add OrbitControls for camera movement
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -33,35 +43,61 @@
         // Add ambient and point lighting
         const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
         scene.add(ambientLight);
-        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
-        pointLight.position.set(0, 10, 10);
+        const pointLight = new THREE.PointLight(0x00ffff, 1, 100);
+        pointLight.position.set(0, 20, 10);
         scene.add(pointLight);
 
-        // 1. Cosmic Background (Skybox)
+        // 1. Cosmic Background (Skybox with a reddish-purple gradient)
         const skyGeometry = new THREE.SphereGeometry(500, 60, 40);
         const skyMaterial = new THREE.MeshBasicMaterial({
-            color: 0x1a0d2b, // Dark cosmic color (replace with a starry texture if available)
+            color: 0x2b0d3a, // Reddish-purple cosmic color
             side: THREE.BackSide
         });
         const sky = new THREE.Mesh(skyGeometry, skyMaterial);
         scene.add(sky);
 
-        // Add a ringed planet
-        const planetGeometry = new THREE.SphereGeometry(5, 32, 32);
-        const planetMaterial = new THREE.MeshPhongMaterial({ color: 0xff3333, emissive: 0x550000 });
+        // Add small glowing stars
+        const starGeometry = new THREE.BufferGeometry();
+        const starVertices = [];
+        for (let i = 0; i < 1000; i++) {
+            starVertices.push((Math.random() - 0.5) * 1000); // x
+            starVertices.push((Math.random() - 0.5) * 1000); // y
+            starVertices.push((Math.random() - 0.5) * 1000); // z
+        }
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1, transparent: true });
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+
+        // Add the ringed planet
+        const planetGeometry = new THREE.SphereGeometry(8, 32, 32);
+        const planetMaterial = new THREE.MeshPhongMaterial({ color: 0xff3333, emissive: 0x550000, emissiveIntensity: 0.5 });
         const planet = new THREE.Mesh(planetGeometry, planetMaterial);
-        planet.position.set(-50, 30, -100);
+        planet.position.set(-100, 50, -200);
         scene.add(planet);
 
-        const ringGeometry = new THREE.TorusGeometry(7, 0.5, 16, 100);
-        const ringMaterial = new THREE.MeshBasicMaterial({ color: 0xff6666 });
+        const ringGeometry = new THREE.TorusGeometry(12, 1, 16, 100);
+        const ringMaterial = new THREE.MeshBasicMaterial({ color: 0xff6666, transparent: true, opacity: 0.8 });
         const ring = new THREE.Mesh(ringGeometry, ringMaterial);
         ring.rotation.x = Math.PI / 2;
-        ring.position.set(-50, 30, -100);
+        ring.position.set(-100, 50, -200);
         scene.add(ring);
 
-        // 2. Central Glowing Cube
-        const cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
+        // Add smaller planets
+        const smallPlanet1Geometry = new THREE.SphereGeometry(2, 16, 16);
+        const smallPlanet1Material = new THREE.MeshPhongMaterial({ color: 0x00ffff, emissive: 0x00aaaa });
+        const smallPlanet1 = new THREE.Mesh(smallPlanet1Geometry, smallPlanet1Material);
+        smallPlanet1.position.set(-50, 20, -50);
+        scene.add(smallPlanet1);
+
+        const smallPlanet2Geometry = new THREE.SphereGeometry(3, 16, 16);
+        const smallPlanet2Material = new THREE.MeshPhongMaterial({ color: 0xaaaaaa });
+        const smallPlanet2 = new THREE.Mesh(smallPlanet2Geometry, smallPlanet2Material);
+        smallPlanet2.position.set(80, 30, -80);
+        scene.add(smallPlanet2);
+
+        // 2. Central Glowing Cube with Eyes
+        const cubeGeometry = new THREE.BoxGeometry(3, 3, 3);
         const cubeMaterial = new THREE.MeshPhongMaterial({
             color: 0x00ffff,
             emissive: 0x00ffff,
@@ -70,77 +106,134 @@
             opacity: 0.8
         });
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        cube.position.set(0, 2, 0);
+        cube.position.set(0, 3, 0);
         scene.add(cube);
 
+        // Add glowing "eyes" on the cube
+        const eyeGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+        const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff, emissive: 0xff00ff });
+        const eye1 = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        eye1.position.set(-0.5, 0, 1.6);
+        cube.add(eye1);
+        const eye2 = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        eye2.position.set(0.5, 0, 1.6);
+        cube.add(eye2);
+
         // Add light beams from the cube
-        const beamGeometry = new THREE.CylinderGeometry(0.1, 0.1, 20, 32);
-        const beamMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5 });
+        const beamGeometry = new THREE.CylinderGeometry(0.2, 0.2, 50, 32);
+        const beamMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.3 });
         const beam = new THREE.Mesh(beamGeometry, beamMaterial);
-        beam.position.set(0, 10, 0);
+        beam.position.set(0, 25, 0);
         scene.add(beam);
 
-        // 3. Energy Streams (Simplified as glowing lines)
+        // Add particle effects for the beam
+        const particleGeometry = new THREE.BufferGeometry();
+        const particleVertices = [];
+        const particleColors = [];
+        for (let i = 0; i < 500; i++) {
+            particleVertices.push((Math.random() - 0.5) * 2); // x
+            particleVertices.push(Math.random() * 50); // y
+            particleVertices.push((Math.random() - 0.5) * 2); // z
+            particleColors.push(0, 1, 1); // Cyan color
+        }
+        particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particleVertices, 3));
+        particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.2,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8
+        });
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particles);
+
+        // 3. Platform for the Cube
+        const platformGeometry = new THREE.BoxGeometry(6, 1, 6);
+        const platformMaterial = new THREE.MeshPhongMaterial({ color: 0x333333, emissive: 0x00ffff, emissiveIntensity: 0.2 });
+        const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+        platform.position.set(0, 1, 0);
+        scene.add(platform);
+
+        // 4. Energy Streams (Flowing from the platform)
         const streamPoints = [];
-        for (let i = 0; i < 20; i++) {
-            streamPoints.push(new THREE.Vector3(i - 10, 0, 0));
+        for (let i = 0; i < 50; i++) {
+            streamPoints.push(new THREE.Vector3(i - 25, 0, 0));
         }
         const streamGeometry = new THREE.BufferGeometry().setFromPoints(streamPoints);
-        const streamMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff });
-        const energyStream = new THREE.Line(streamGeometry, streamMaterial);
-        energyStream.position.y = 0.1;
-        scene.add(energyStream);
+        const streamMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.7 });
+        const energyStream1 = new THREE.Line(streamGeometry, streamMaterial);
+        energyStream1.position.set(0, 0.1, 0);
+        scene.add(energyStream1);
 
-        // 4. Floating Code Windows
-        const codePlaneGeometry = new THREE.PlaneGeometry(3, 2);
+        const streamPoints2 = [];
+        for (let i = 0; i < 50; i++) {
+            streamPoints2.push(new THREE.Vector3(0, 0, i - 25));
+        }
+        const streamGeometry2 = new THREE.BufferGeometry().setFromPoints(streamPoints2);
+        const energyStream2 = new THREE.Line(streamGeometry2, streamMaterial);
+        energyStream2.position.set(0, 0.1, 0);
+        scene.add(energyStream2);
+
+        // 5. Floating Code Windows
+        const codePlaneGeometry = new THREE.PlaneGeometry(4, 3);
         const codePlaneMaterial = new THREE.MeshBasicMaterial({
             color: 0x00ffff,
             transparent: true,
-            opacity: 0.5,
+            opacity: 0.3,
             side: THREE.DoubleSide
         });
         const codeWindow1 = new THREE.Mesh(codePlaneGeometry, codePlaneMaterial);
-        codeWindow1.position.set(5, 3, 0);
+        codeWindow1.position.set(8, 5, 0);
+        codeWindow1.rotation.y = Math.PI / 4;
         scene.add(codeWindow1);
 
         const codeWindow2 = new THREE.Mesh(codePlaneGeometry, codePlaneMaterial);
-        codeWindow2.position.set(-5, 3, 0);
+        codeWindow2.position.set(-8, 5, 0);
+        codeWindow2.rotation.y = -Math.PI / 4;
         scene.add(codeWindow2);
 
-        // 5. Futuristic Cityscape (Simplified as glowing pillars)
-        const buildingGeometry = new THREE.BoxGeometry(0.5, 5, 0.5);
-        const buildingMaterial = new THREE.MeshPhongMaterial({ color: 0xff00ff, emissive: 0xff00ff });
-        for (let i = 0; i < 10; i++) {
+        // Add icons on the code windows (simplified as small shapes)
+        const iconGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const iconMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+        const icon1 = new THREE.Mesh(iconGeometry, iconMaterial);
+        icon1.position.set(8, 5, 0.1);
+        scene.add(icon1);
+
+        const icon2 = new THREE.Mesh(iconGeometry, iconMaterial);
+        icon2.position.set(-8, 5, 0.1);
+        scene.add(icon2);
+
+        // 6. Futuristic Cityscape (Glowing pillars and structures)
+        const buildingGeometry = new THREE.BoxGeometry(0.5, 10, 0.5);
+        const buildingMaterial = new THREE.MeshPhongMaterial({ color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 0.5 });
+        for (let i = 0; i < 20; i++) {
             const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
             building.position.set(
-                (Math.random() - 0.5) * 20,
-                2.5,
-                (Math.random() - 0.5) * 20
+                (Math.random() - 0.5) * 50,
+                5,
+                (Math.random() - 0.5) * 50
             );
+            building.scale.y = Math.random() * 2 + 1;
             scene.add(building);
         }
 
-        // 6. Spaceships (Simplified as small cubes with movement)
-        const spaceshipGeometry = new THREE.BoxGeometry(0.5, 0.2, 1);
+        // Add ground plane for the cityscape
+        const groundGeometry = new THREE.PlaneGeometry(100, 100);
+        const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x111111, emissive: 0x222222 });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        scene.add(ground);
+
+        // 7. Spaceships (Simplified as small shapes with movement)
+        const spaceshipGeometry = new THREE.ConeGeometry(0.5, 1, 16);
         const spaceshipMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0xaaaaaa });
         const spaceship1 = new THREE.Mesh(spaceshipGeometry, spaceshipMaterial);
-        spaceship1.position.set(0, 5, 0);
+        spaceship1.position.set(0, 8, 0);
         scene.add(spaceship1);
 
         const spaceship2 = new THREE.Mesh(spaceshipGeometry, spaceshipMaterial);
-        spaceship2.position.set(0, 5, 0);
+        spaceship2.position.set(0, 8, 0);
         scene.add(spaceship2);
-
-        // 7. "Cosmos Coder" Text (Simplified as a 2D overlay for now)
-        const textOverlay = document.createElement('div');
-        textOverlay.style.position = 'absolute';
-        textOverlay.style.top = '20px';
-        textOverlay.style.left = '20px';
-        textOverlay.style.color = '#00ffff';
-        textOverlay.style.fontSize = '40px';
-        textOverlay.style.fontFamily = 'Arial, sans-serif';
-        textOverlay.innerText = 'COSMOS CODER';
-        document.body.appendChild(textOverlay);
 
         // Animation Loop
         let time = 0;
@@ -148,15 +241,25 @@
             requestAnimationFrame(animate);
 
             // Rotate the cube
-            cube.rotation.x += 0.01;
-            cube.rotation.y += 0.01;
+            cube.rotation.x += 0.005;
+            cube.rotation.y += 0.005;
+
+            // Animate the particles in the beam
+            const positions = particles.geometry.attributes.position.array;
+            for (let i = 1; i < positions.length; i += 3) {
+                positions[i] -= 0.2; // Move particles downward
+                if (positions[i] < 0) positions[i] = 50; // Reset to top
+            }
+            particles.geometry.attributes.position.needsUpdate = true;
 
             // Animate the spaceships
             time += 0.05;
-            spaceship1.position.x = 5 * Math.sin(time);
-            spaceship1.position.z = 5 * Math.cos(time);
-            spaceship2.position.x = 5 * Math.cos(time);
-            spaceship2.position.z = 5 * Math.sin(time);
+            spaceship1.position.x = 10 * Math.sin(time);
+            spaceship1.position.z = 10 * Math.cos(time);
+            spaceship1.rotation.y = time;
+            spaceship2.position.x = 10 * Math.cos(time);
+            spaceship2.position.z = 10 * Math.sin(time);
+            spaceship2.rotation.y = -time;
 
             // Update controls
             controls.update();
